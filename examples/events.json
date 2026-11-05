@@ -1,0 +1,20 @@
+[
+  {
+    "rule_id": "d9e350f1b72d4730899c8a420e48a85d",
+    "ruleset_id": "efb7b8c949ac4650a09736fc376e9aee",
+    "method": "POST",
+    "path": "/wp-admin/admin-ajax.php",
+    "action": "block",
+    "count": 18,
+    "date": "2026-10-12"
+  },
+  {
+    "rule_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "ruleset_id": "efb7b8c949ac4650a09736fc376e9aee",
+    "method": "GET",
+    "path": "/.env",
+    "action": "block",
+    "count": 40,
+    "date": "2026-10-12"
+  }
+]

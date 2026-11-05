@@ -1,0 +1,5 @@
+{
+  "http_request_firewall_custom": [],
+  "http_ratelimit": [],
+  "http_request_firewall_managed": []
+}
