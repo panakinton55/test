@@ -1,0 +1,233 @@
+export const openApiDocument = {
+  openapi: "3.1.0",
+  info: {
+    title: "AgentSecure Gateway API",
+    version: "0.1.0",
+    description:
+      "AIエージェントが社外のLLMやツールへ送るデータの漏洩リスクを大幅に低減する中継APIです。不正送信を検知・遮断し、個人情報や認証情報をマスキングします。",
+  },
+  servers: [{ url: "/" }],
+  tags: [
+    { name: "Tenants" },
+    { name: "API keys" },
+    { name: "Policies" },
+    { name: "Gateway" },
+    { name: "Audit" },
+  ],
+  components: {
+    securitySchemes: {
+      ApiKey: { type: "apiKey", in: "header", name: "X-Api-Key" },
+      AdminKey: { type: "apiKey", in: "header", name: "X-Admin-Key" },
+    },
+    schemas: {
+      Error: {
+        type: "object",
+        required: ["request_id", "error"],
+        properties: {
+          request_id: { type: "string" },
+          error: {
+            type: "object",
+            required: ["code", "message"],
+            properties: {
+              code: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+        },
+      },
+      Blocked: {
+        type: "object",
+        required: ["request_id", "status", "reason_code", "message"],
+        properties: {
+          request_id: { type: "string" },
+          status: { type: "string", const: "blocked" },
+          reason_code: { type: "string" },
+          details: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                category: { type: "string" },
+                action: { type: "string" },
+              },
+            },
+          },
+          message: { type: "string" },
+        },
+      },
+    },
+  },
+  paths: {
+    "/health": {
+      get: {
+        summary: "Health check",
+        responses: { "200": { description: "The process is running." } },
+      },
+    },
+    "/v1/tenants": {
+      post: {
+        tags: ["Tenants"],
+        summary: "Create a tenant",
+        security: [{ AdminKey: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["company_name", "admin_email", "plan"],
+                properties: {
+                  company_name: { type: "string" },
+                  admin_email: { type: "string", format: "email" },
+                  plan: { type: "string", enum: ["starter", "business", "enterprise"] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Tenant created." },
+          "401": { description: "Admin authentication failed.", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+        },
+      },
+    },
+    "/v1/api-keys": {
+      post: {
+        tags: ["API keys"],
+        summary: "Issue an API key. The plaintext key is returned once.",
+        security: [{ AdminKey: [] }, { ApiKey: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  tenant_id: { type: "string" },
+                  name: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": { description: "Key issued. Store the plaintext immediately." },
+          "401": { description: "Authentication failed." },
+        },
+      },
+    },
+    "/v1/policies": {
+      post: {
+        tags: ["Policies"],
+        summary: "Create an egress policy",
+        security: [{ ApiKey: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["policy_name", "allowed_domains"],
+                properties: {
+                  policy_name: { type: "string" },
+                  allowed_domains: { type: "array", items: { type: "string" } },
+                  blocked_patterns: { type: "array", items: { type: "string" } },
+                  masking_rules: { type: "array", items: { type: "object" } },
+                  max_request_bytes: { type: "integer" },
+                  rate_limit: { oneOf: [{ type: "integer" }, { type: "object" }] },
+                  agent_id: { type: ["string", "null"] },
+                },
+              },
+            },
+          },
+        },
+        responses: { "201": { description: "Policy created." }, "401": { description: "Authentication failed." } },
+      },
+    },
+    "/v1/gateway/proxy": {
+      post: {
+        tags: ["Gateway"],
+        summary: "Inspect and forward an agent request",
+        description: "許可された宛先だけへ中継します。機密情報はマスキングするか、ポリシーに従って送信を遮断します。",
+        security: [{ ApiKey: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["agent_id", "destination"],
+                properties: {
+                  agent_id: { type: "string" },
+                  destination: { type: "string", format: "uri" },
+                  method: { type: "string", enum: ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+                  headers: { type: "object", additionalProperties: { type: "string" } },
+                  body: {},
+                },
+              },
+              examples: {
+                masked: {
+                  value: {
+                    agent_id: "sales-bot",
+                    destination: "https://api.example.com/v1/chat",
+                    method: "POST",
+                    body: { prompt: "連絡先は taro@example.com です" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description: "The request was forwarded. Masked fields are listed in modifications.",
+            content: {
+              "application/json": {
+                example: {
+                  request_id: "req_xxx",
+                  status: "allowed",
+                  destination: "https://api.example.com/v1/chat",
+                  latency_ms: 82,
+                  modifications: [{ type: "mask", category: "email", count: 1 }],
+                  upstream: { status: 200, body: { ok: true } },
+                },
+              },
+            },
+          },
+          "403": {
+            description: "The request was blocked.",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/Blocked" },
+                example: {
+                  request_id: "req_xxx",
+                  status: "blocked",
+                  reason_code: "SENSITIVE_DATA_DETECTED",
+                  details: [{ category: "private_key", action: "block" }],
+                  message: "Request blocked by security policy.",
+                },
+              },
+            },
+          },
+          "429": { description: "Rate limit exceeded.", content: { "application/json": { schema: { $ref: "#/components/schemas/Blocked" } } } },
+        },
+      },
+    },
+    "/v1/audit-logs": {
+      get: {
+        tags: ["Audit"],
+        summary: "List audit logs for the authenticated tenant",
+        security: [{ ApiKey: [] }],
+        parameters: [
+          { name: "from", in: "query", schema: { type: "string", format: "date-time" } },
+          { name: "to", in: "query", schema: { type: "string", format: "date-time" } },
+          { name: "action", in: "query", schema: { type: "string", enum: ["allow", "mask", "block"] } },
+          { name: "reason_code", in: "query", schema: { type: "string" } },
+          { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 100, default: 50 } },
+          { name: "cursor", in: "query", schema: { type: "string" } },
+        ],
+        responses: { "200": { description: "Audit page. Raw prompts and secrets are not included." } },
+      },
+    },
+  },
+} as const;

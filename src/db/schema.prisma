@@ -1,0 +1,125 @@
+// Customer APIs never read these tables directly.
+// Identity keys are an internal implementation detail.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  starter
+  business
+  enterprise
+}
+
+enum AuditAction {
+  allow
+  mask
+  block
+}
+
+model Tenant {
+  id          String   @id
+  companyName String   @map("company_name")
+  adminEmail  String   @map("admin_email")
+  plan        Plan
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  apiKeys      ApiKey[]
+  agents       Agent[]
+  policies     Policy[]
+  auditLogs    AuditLog[]
+  identityKeys IdentityKey[]
+
+  @@map("tenants")
+}
+
+model ApiKey {
+  id        String    @id
+  tenantId  String    @map("tenant_id")
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  keyHash   String    @unique @map("key_hash")
+  prefix    String
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  @@index([tenantId])
+  @@map("api_keys")
+}
+
+model Agent {
+  id              String   @id
+  tenantId        String   @map("tenant_id")
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  externalAgentId String   @map("external_agent_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, externalAgentId])
+  @@map("agents")
+}
+
+model Policy {
+  id                String   @id
+  tenantId          String   @map("tenant_id")
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  agentExternalId   String?  @map("agent_external_id")
+  policyName        String   @map("policy_name")
+  version           Int
+  allowedDomains    Json     @map("allowed_domains")
+  blockedPatterns   Json     @map("blocked_patterns")
+  maskingRules      Json     @map("masking_rules")
+  maxRequestBytes   Int      @map("max_request_bytes")
+  rateLimit         Int      @map("rate_limit")
+  rateWindowSeconds Int      @map("rate_window_seconds")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId, agentExternalId])
+  @@map("policies")
+}
+
+model AuditLog {
+  id                String      @id
+  requestId         String      @unique @map("request_id")
+  tenantId          String      @map("tenant_id")
+  tenant            Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  agentId           String      @map("agent_id")
+  policyId          String?     @map("policy_id")
+  timestamp         DateTime    @default(now())
+  sourceIpHash      String      @map("source_ip_hash")
+  destinationDomain String      @map("destination_domain")
+  httpMethod        String      @map("http_method")
+  requestSizeBytes  Int         @map("request_size_bytes")
+  detectionResults  Json        @map("detection_results")
+  action            AuditAction
+  reasonCode        String?     @map("reason_code")
+  latencyMs         Int         @map("latency_ms")
+  policyVersion     Int?        @map("policy_version")
+  gatewayVersion    String      @map("gateway_version")
+
+  @@index([tenantId, timestamp])
+  @@index([tenantId, action])
+  @@map("audit_logs")
+}
+
+model IdentityKey {
+  id              String   @id
+  tenantId        String   @map("tenant_id")
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// Empty string is the tenant subject. A non-empty value is the customer agent id.
+  agentExternalId String   @default("") @map("agent_external_id")
+  /// Internal subject identifier. Never return this from customer APIs.
+  subjectId       String   @unique @map("subject_id")
+  publicKey       String   @map("public_key")
+  /// TODO(security): encrypt with a KMS-managed data key. Do not store raw key material in production.
+  privateKey      String   @map("private_key")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, agentExternalId])
+  @@map("identity_keys")
+}
