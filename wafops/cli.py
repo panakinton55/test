@@ -7,6 +7,7 @@ import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+from wafops.analyze import analyze, format_findings
 from wafops.aws import desired_rules as aws_desired_rules
 from wafops.aws import merge_rules, update_document
 from wafops.cloudflare import CloudflareClient, build_plan, format_plan
@@ -59,6 +60,11 @@ def main(argv: list[str] | None = None) -> int:
     list_parser = exception_sub.add_parser("list", help="候補と承認の一覧")
     _add_site(list_parser)
     list_parser.set_defaults(func=cmd_list)
+
+    analyze_parser = sub.add_parser("analyze", help="ブロックログを制御と判定に分ける")
+    _add_site(analyze_parser)
+    analyze_parser.add_argument("--events", required=True)
+    analyze_parser.set_defaults(func=cmd_analyze)
 
     report = sub.add_parser("report", help="月次報告書")
     _add_site(report)
@@ -165,6 +171,22 @@ def cmd_apply(args) -> int:
                 _stamp(args.today),
             )
     print("反映しました。")
+    return 0
+
+
+def cmd_analyze(args) -> int:
+    site = load_site_file(args.site)
+    template = get_template(site.template)
+    findings = analyze(
+        site.name,
+        site.provider,
+        template,
+        _load_events(args.events),
+        _today(args.today),
+        site.false_positive_threshold,
+        site.known_paths,
+    )
+    print(format_findings(findings))
     return 0
 
 
@@ -361,6 +383,8 @@ def _load_events(path: str) -> list[dict]:
                     "date": str(item["date"]),
                 }
             )
+            if item.get("rule_ref"):
+                events[-1]["rule_ref"] = str(item["rule_ref"])
         except KeyError as exc:
             raise WafopsError(f"イベントに {exc.args[0]} がありません") from exc
     return events

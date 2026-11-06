@@ -1,0 +1,70 @@
+[
+  {
+    "rule_ref": "wafops/locked/sensitive-paths",
+    "rule_id": "wafops/locked/sensitive-paths",
+    "ruleset_id": "",
+    "method": "GET",
+    "path": "/.env",
+    "action": "block",
+    "count": 40,
+    "date": "2026-10-12"
+  },
+  {
+    "rule_ref": "wafops/locked/sensitive-paths",
+    "rule_id": "wafops/locked/sensitive-paths",
+    "ruleset_id": "",
+    "method": "POST",
+    "path": "/xmlrpc.php",
+    "action": "block",
+    "count": 15,
+    "date": "2026-10-12"
+  },
+  {
+    "rule_ref": "wafops/locked/wp-users-api",
+    "rule_id": "wafops/locked/wp-users-api",
+    "ruleset_id": "",
+    "method": "GET",
+    "path": "/wp-json/wp/v2/users",
+    "action": "block",
+    "count": 9,
+    "date": "2026-10-12"
+  },
+  {
+    "rule_ref": "wafops/locked/wp-author-enum",
+    "rule_id": "wafops/locked/wp-author-enum",
+    "ruleset_id": "",
+    "method": "GET",
+    "path": "/blog",
+    "action": "block",
+    "count": 6,
+    "date": "2026-10-12"
+  },
+  {
+    "rule_ref": "wafops/locked/wp-login",
+    "rule_id": "wafops/locked/wp-login",
+    "ruleset_id": "",
+    "method": "POST",
+    "path": "/wp-login.php",
+    "action": "block",
+    "count": 80,
+    "date": "2026-10-12"
+  },
+  {
+    "rule_id": "d9e350f1b72d4730899c8a420e48a85d",
+    "ruleset_id": "efb7b8c949ac4650a09736fc376e9aee",
+    "method": "POST",
+    "path": "/wp-admin/admin-ajax.php",
+    "action": "block",
+    "count": 18,
+    "date": "2026-10-12"
+  },
+  {
+    "rule_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "ruleset_id": "efb7b8c949ac4650a09736fc376e9aee",
+    "method": "POST",
+    "path": "/checkout",
+    "action": "block",
+    "count": 2,
+    "date": "2026-10-12"
+  }
+]

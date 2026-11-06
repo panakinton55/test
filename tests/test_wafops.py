@@ -307,6 +307,24 @@ class AwsTests(unittest.TestCase):
             update_document({"WebACL": {"Name": "acl", "Id": "id"}}, [])
 
 
+class AnalyzeTests(unittest.TestCase):
+    def test_block_log_keeps_fixed_controls_and_flags_one_exception(self):
+        from wafops.analyze import analyze
+
+        template = get_template("wordpress")
+        events = json.loads((ROOT / "examples" / "block-log.json").read_text(encoding="utf-8"))
+        findings = analyze("example-shop", "cloudflare", template, events, TODAY, 5, ())
+        by_path = {item.path: item for item in findings}
+        self.assertEqual(by_path["/.env"].decision, "遮断を維持")
+        self.assertEqual(by_path["/.env"].label, "機密ファイルへのアクセス")
+        self.assertEqual(by_path["/xmlrpc.php"].decision, "遮断を維持")
+        self.assertEqual(by_path["/wp-json/wp/v2/users"].label, "ユーザー一覧の取得")
+        self.assertEqual(by_path["/wp-login.php"].label, "ログインの連続試行")
+        self.assertEqual(by_path["/wp-admin/admin-ajax.php"].decision, "例外候補")
+        self.assertEqual(by_path["/checkout"].decision, "様子を見る")
+        self.assertNotIn("union", json.dumps(events).lower())
+
+
 class ReportTests(unittest.TestCase):
     def test_report_masks_card_numbers_and_counts_only_the_requested_month(self):
         template = get_template("ecommerce")

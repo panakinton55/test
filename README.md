@@ -86,6 +86,23 @@ python3 -m wafops apply --site path/to/site.json --yes
 
 `ruleset_id` が Cloudflare Managed Ruleset のときだけ候補になります。同じパスで 5 件以上（`false_positive_threshold` で変更）ブロックされていることが条件です。
 
+### ブロックログの分析
+
+`examples/block-log.json` は、WAF が残す判定です。リクエストの中身は入れず、どの制御が何件止めたかだけを記録します。
+
+```bash
+python3 -m wafops analyze \
+  --site examples/shop.json \
+  --events examples/block-log.json \
+  --today 2026-10-20
+```
+
+判定は3種類です。
+
+- 遮断を維持: テンプレの固定ルール（機密パス、ユーザー列挙、ログインと決済のレート制限）
+- 例外候補: 通常操作のパスで、マネージドルール1件が閾値以上ブロックしている
+- 様子を見る: 件数が閾値未満、または通常操作パスではないマネージドルール
+
 ### ログ
 
 `logging check` は、リクエストボディと Cookie を保存せず、`authorization` と `cookie` をマスクしているかを見ます。`logs scan` はサンプルからカード番号の形（Luhn）を探し、末尾 4 桁だけを表示します。`examples/logs.jsonl` の番号は決済テスト用のものです。
