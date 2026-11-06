@@ -1,0 +1,5 @@
+{
+  "store_request_body": false,
+  "store_cookies": false,
+  "redact_headers": ["authorization", "cookie"]
+}

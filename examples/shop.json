@@ -1,0 +1,8 @@
+{
+  "name": "example-shop",
+  "provider": "cloudflare",
+  "zone_id": "00000000000000000000000000000000",
+  "template": "wordpress",
+  "mode": "block",
+  "plan": "pro"
+}
