@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>エージェント関所の売り方</title>
+    <style>
+      @page { size: A4; margin: 16mm 15mm 16mm; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: "Noto Sans CJK JP", "Hiragino Sans", sans-serif;
+        color: #1c1915;
+        background: #fff;
+        font-size: 11pt;
+        line-height: 1.55;
+      }
+      h1 { font-size: 22pt; line-height: 1.35; font-weight: 700; margin: 0 0 8mm; }
+      h2 { font-size: 14pt; margin: 8mm 0 3mm; page-break-after: avoid; }
+      p { margin: 0 0 3mm; }
+      .kicker { color: #5c564e; font-size: 10pt; letter-spacing: 0.04em; margin-bottom: 6mm; }
+      .note { color: #5c564e; font-size: 9.5pt; }
+      .banner {
+        border-left: 3px solid #1b4534;
+        background: #f6f4ef;
+        padding: 3mm 4mm;
+        margin: 0 0 6mm;
+      }
+      .stats { width: 100%; border-collapse: separate; border-spacing: 3mm 0; margin: 0 0 6mm; }
+      .stats td { background: #f6f4ef; padding: 4mm; width: 33%; vertical-align: top; }
+      .stats strong { display: block; color: #1b4534; font-size: 14pt; margin-bottom: 1mm; }
+      table.data { width: 100%; border-collapse: collapse; margin: 0 0 4mm; page-break-inside: avoid; }
+      table.data th, table.data td { border: 0.2mm solid #e2dcd2; padding: 2.2mm 2.5mm; vertical-align: top; text-align: left; }
+      table.data th { background: #1b4534; color: #fff; font-weight: 650; }
+      table.data tr:nth-child(even) td { background: #f6f4ef; }
+      .pitch { border-left: 3px solid #1b4534; padding: 3mm 4mm; background: #e6eee8; page-break-inside: avoid; }
+      h2, h1 { page-break-after: avoid; }
+    </style>
+  </head>
+  <body>
+    <p class="kicker">販売仮説 · 2026年11月 · 税別 · 受注実績なし</p>
+    <h1>エージェントを本番に出せない会社に売る</h1>
+    <p>買う理由は暗号の名前ではない。外部へ送る直前に、誰が、何の権限で、どこへ、何を出さなかったかを説明できない。関所がその説明を残す。</p>
+    <div class="banner">
+      このリポジトリは単一プロセスのMVPである。金額は、部門のセキュリティ契約、規制産業の専用環境、3ヶ月のPoCという隣の買い方から置いた提示幅である。
+    </div>
+    <table class="stats">
+      <tr>
+        <td><strong>200–500万円</strong>今日売れる設計パートナー（3ヶ月）</td>
+        <td><strong>240–600万円</strong>製品化後の部門年額</td>
+        <td><strong>900–2,400万円</strong>製品化後の全社年額</td>
+      </tr>
+    </table>
+
+    <h2>顧客が止まっている判断</h2>
+    <p>共通点はモデルの精度ではない。エージェントが外部APIを叩いたあとに、セキュリティ部門が本番を許可できない。</p>
+    <table class="data">
+      <thead>
+        <tr><th>顧客</th><th>止まっている判断</th><th>関所が残すもの</th><th>払う予算</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>銀行・保険の行内アシスタント</td>
+          <td>顧客情報やAPIキーが外部LLMへ抜ける恐れがあり、リスク管理部が本番を止める</td>
+          <td>登録済みエージェント、許可した宛先、落とした秘密、ハッシュでつながる記録</td>
+          <td>リスク・コンプライアンス</td>
+        </tr>
+        <tr>
+          <td>業務SaaSにエージェントを足す事業者</td>
+          <td>大企業のセキュリティ審査で「ツール呼び出しの認可と証跡」を聞かれ、商談が止まる</td>
+          <td>審査回答に貼れる関所。身元、スコープ、宛先の固定、監査</td>
+          <td>プロダクトのエンタープライズ契約</td>
+        </tr>
+        <tr>
+          <td>製造・通信の情報システム部</td>
+          <td>部門ごとにエージェントと宛先が増え、止めると生産性が落ち、放置すると持ち出しが見えない</td>
+          <td>宛先は許可リストだけ。部門はエージェントを追加でき、情シスは記録を持つ</td>
+          <td>全社のAI基盤</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>いくらで売るか</h2>
+    <table class="data">
+      <thead>
+        <tr><th>売り方</th><th>期間</th><th>下限</th><th>上限</th><th>この金額で渡すもの</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>設計パートナー</td><td>3ヶ月</td><td>200万円</td><td>500万円</td><td>今のMVPで、要件と監査の見本を一緒に固める</td></tr>
+        <tr><td>部門</td><td>年額</td><td>240万円</td><td>600万円</td><td>本番の関所。エージェント数十、宛先は一桁</td></tr>
+        <tr><td>全社</td><td>年額</td><td>900万円</td><td>2,400万円</td><td>専用環境、規制産業、監査の保存とサポート</td></tr>
+      </tbody>
+    </table>
+    <p class="note">全社APIの置換価格にはしない。対象はエージェントの外部呼び出しだけ。広いAPI基盤は通常もっと高いので、全社でも2,400万円を上限の目安にする。</p>
+
+    <h2>価格の式</h2>
+    <p>年額 = 180万円 + エージェント × 3.6万円 + 宛先 × 12万円。規制産業は1.5倍、専用環境は1.35倍、下限は240万円。交渉下限は提示の80%。</p>
+    <p>PoCは基盤200万円。規制産業で+80万円、専用環境で+100万円、エージェント200で+40万円。エージェント単価はPoCには乗せない。</p>
+    <table class="data">
+      <thead>
+        <tr><th>条件</th><th>提示</th><th>交渉下限</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>製品化後 · 一般 · 共有クラウド · エージェント50 · 宛先5</td><td>420万円 / 年</td><td>336万円 / 年</td></tr>
+        <tr><td>製品化後 · 金融・医療・公共 · 専用環境 · エージェント200 · 宛先15</td><td>2,187万円 / 年</td><td>1,750万円 / 年</td></tr>
+        <tr><td>今のMVP · 一般 · 共有クラウド · 3ヶ月</td><td>200万円</td><td>160万円</td></tr>
+        <tr><td>今のMVP · 金融 · 専用環境 · エージェント200 · 3ヶ月</td><td>420万円</td><td>336万円</td></tr>
+      </tbody>
+    </table>
+
+    <h2>その価格になる理由</h2>
+    <p>初期値は年額420万円。部門のエージェント運用が年5,000万円分の工数を置き換えると仮定すると、関所はその約8%である。セキュリティ審査で止まったままなら、その5,000万円はゼロのまま残る。仮定が半分でも価格は残る。</p>
+    <p>APIキーや個人情報の外部送信を1件止めると、キーのローテーション、顧客連絡、監査対応で数百万円から数千万円が動く。業種で幅が大きいので、見積では顧客自身の対応費に置き換える。5,000万円は説明用の仮定であり、受注の根拠数字ではない。</p>
+
+    <h2>誰が買い、誰には売らないか</h2>
+    <table class="data">
+      <thead>
+        <tr><th>相手</th><th>決裁</th><th>売り方</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>情報システム部・セキュリティ</td><td>本番許可の条件として年額</td><td>部門から入り、宛先と監査保存が増えたら全社へ</td></tr>
+        <tr><td>エージェントを売るSaaS</td><td>審査が通る機能としてOEM</td><td>顧客数に応じた年額。相手の商談資料に関所の回答を載せる</td></tr>
+        <tr><td>SI・コンサル</td><td>顧客提案の部品</td><td>ライセンスはエンド顧客。導入費はSIが取る</td></tr>
+        <tr><td>個人開発と、エージェントが実験1個の会社</td><td>予算が課題より小さい</td><td>売らない。設計パートナーにもしない</td></tr>
+      </tbody>
+    </table>
+
+    <h2>今の実装で言ってよいこと</h2>
+    <p>商談ではゼロ知識証明やDIDという語を先に出さない。顧客が買う言葉は左の列である。</p>
+    <table class="data">
+      <thead>
+        <tr><th>顧客の言葉</th><th>今あるもの</th><th>年額の前に足すもの</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>登録されたエージェントだけ通す</td><td>Ed25519の署名と、メモリ上の台帳</td><td>鍵の配布と失効、SSO、台帳の永続化</td></tr>
+        <tr><td>権限を必要最小限にする</td><td>スコープの開示と、隠した属性のコミットメント</td><td>管理画面。暗号の名前は資料の脚注に下げる</td></tr>
+        <tr><td>秘密と注入を外へ出さない</td><td>規則による検知。プロンプト本文は監査に残さない</td><td>日本語の個人情報、社内用語、誤検知の直し方</td></tr>
+        <tr><td>あとから記録を疑える</td><td>直前ハッシュを含む監査JSON</td><td>保存期間、エクスポート、時計、改ざん時の手順</td></tr>
+        <tr><td>宛先をエージェントに選ばせない</td><td>3種の許可リストと、暗号化コンテキスト</td><td>高可用、宛先ごとの契約、秘密の保管</td></tr>
+      </tbody>
+    </table>
+    <p>年額に含めないもの: 全社のAPIゲートウェイ、モデルそのもの、SOC報告の代行、ゼロ知識証明の認証取得。デモ用の署名エンドポイントは本番の売り物にしない。</p>
+
+    <h2>商談の最初の30秒</h2>
+    <div class="pitch">
+      エージェントを本番に出せない理由は、モデルの性能ではありません。外へ出す直前に、誰が、何の権限で、どこへ送り、何を落とさなかったかを説明できないからです。関所を一つ置くと、その説明が残ります。今日できるのは3ヶ月の設計パートナーで200万円から。本番の年額は、部門で240万円、全社で900万円が入口です。
+    </div>
+  </body>
+</html>
