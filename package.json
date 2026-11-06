@@ -1,0 +1,8 @@
+{
+  "name": "juniseki",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/seats.test.mjs test/view.test.mjs"
+  }
+}
