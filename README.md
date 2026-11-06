@@ -12,6 +12,8 @@ npm run dev
 
 コンソールは `http://127.0.0.1:8787/` です。署名済みリクエストの例は `npm run demo` で出力します。
 
+説明資料は `docs/agent-gateway-business.pptx` と `docs/agent-gateway-business.pdf` です。
+
 ## `POST /api/gateway/dispatch`
 
 ボディは次のJSONだけを受け付けます。
