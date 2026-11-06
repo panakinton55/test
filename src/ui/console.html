@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>agent-secure-gateway</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #10140f;
+        --panel: #181d16;
+        --line: #31382c;
+        --text: #e7ecdf;
+        --muted: #9aa392;
+        --allow: #d6f25a;
+        --deny: #ff7a59;
+        --warn: #e6b35a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 15px/1.5 ui-sans-serif, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      }
+      main { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }
+      header { display: flex; justify-content: space-between; gap: 24px; align-items: end; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+      h1 { font-size: 22px; font-weight: 620; letter-spacing: 0.04em; margin: 0; }
+      h2 { font-size: 13px; font-weight: 620; letter-spacing: 0.12em; text-transform: uppercase; margin: 28px 0 12px; color: var(--muted); }
+      p { margin: 8px 0 0; color: var(--muted); }
+      code, pre, .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+      .status { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+      .chip { border: 1px solid var(--line); padding: 4px 8px; border-radius: 999px; color: var(--muted); font-size: 12px; max-width: 100%; overflow-wrap: anywhere; }
+      .chip.ok { color: var(--allow); border-color: #44521f; }
+      .chip.bad { color: var(--deny); border-color: #5c2d24; }
+      .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+      label { display: block; margin: 12px 0 6px; color: var(--muted); font-size: 13px; }
+      textarea, select {
+        width: 100%;
+        background: #0d100c;
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px;
+        font: inherit;
+      }
+      textarea { min-height: 140px; resize: vertical; }
+      .actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+      button {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px 10px;
+        text-align: left;
+        cursor: pointer;
+      }
+      button:hover { border-color: var(--allow); }
+      button.primary { background: var(--allow); color: #172000; border-color: var(--allow); font-weight: 650; }
+      pre {
+        margin: 0;
+        min-height: 220px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        font-size: 12px;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 12px; }
+      th, td { border-bottom: 1px solid var(--line); padding: 8px 6px; text-align: left; vertical-align: top; }
+      th { color: var(--muted); font-weight: 580; }
+      td.allow { color: var(--allow); }
+      td.deny { color: var(--deny); }
+      @media (max-width: 800px) {
+        header, .layout { display: block; }
+        .status { justify-content: flex-start; margin-top: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>agent-secure-gateway</h1>
+          <p>DID署名と知識証明トークンを検証し、通過した要求だけを暗号化コンテキスト付きで転送します。</p>
+        </div>
+        <div class="status" id="status"></div>
+      </header>
+      <div class="layout">
+        <section>
+          <h2>Dispatch</h2>
+          <label for="destination">宛先</label>
+          <select id="destination">
+            <option value="llm.completions">llm.completions</option>
+            <option value="search.query">search.query</option>
+            <option value="tools.invoke">tools.invoke</option>
+          </select>
+          <label for="prompt">プロンプト（許可シナリオだけに使います）</label>
+          <textarea id="prompt">次の文を要約してください。ゲートウェイは検証済みのプロンプトだけを転送します。</textarea>
+          <div class="actions">
+            <button class="primary" type="button" data-scenario="allow">検証して転送</button>
+            <button type="button" data-scenario="bad_signature">署名が不正</button>
+            <button type="button" data-scenario="bad_zkp">検証トークンが不正</button>
+            <button type="button" data-scenario="replay">ノンス再送</button>
+            <button type="button" data-scenario="secret">機密情報</button>
+            <button type="button" data-scenario="injection">インジェクション</button>
+            <button type="button" data-scenario="scope">スコープ不足</button>
+          </div>
+        </section>
+        <section>
+          <h2>Result</h2>
+          <pre id="result">まだ実行していません。</pre>
+        </section>
+      </div>
+      <h2>Audit</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>時刻 (JST)</th>
+            <th>判定</th>
+            <th>コード</th>
+            <th>DID</th>
+            <th>宛先</th>
+            <th>ハッシュ</th>
+          </tr>
+        </thead>
+        <tbody id="audit"></tbody>
+      </table>
+    </main>
+    <script>
+      const statusEl = document.querySelector('#status');
+      const resultEl = document.querySelector('#result');
+      const auditEl = document.querySelector('#audit');
+      const promptEl = document.querySelector('#prompt');
+      const destinationEl = document.querySelector('#destination');
+
+      function chip(text, kind) {
+        const span = document.createElement('span');
+        span.className = kind ? `chip ${kind}` : 'chip';
+        span.textContent = text;
+        return span;
+      }
+
+      function formatTime(iso) {
+        const date = new Date(iso);
+        if (Number.isNaN(date.getTime())) return iso;
+        return date.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', hour12: false });
+      }
+
+      async function refresh() {
+        const healthRes = await fetch('/api/gateway/health');
+        const health = await healthRes.json();
+        const auditRes = await fetch('/api/gateway/audit');
+        const audit = await auditRes.json();
+        statusEl.replaceChildren();
+        statusEl.append(
+          chip(health.audit && health.audit.chainValid ? 'chain ok' : 'chain broken', health.audit && health.audit.chainValid ? 'ok' : 'bad'),
+          chip(health.demo ? 'demo on' : 'demo off', health.demo ? 'ok' : 'bad'),
+          chip(`events ${health.audit ? health.audit.length : 0}`),
+        );
+        if (health.demoAgent && health.demoAgent.did) statusEl.append(chip(health.demoAgent.did));
+        auditEl.replaceChildren();
+        for (const event of (audit.events || []).slice().reverse()) {
+          const row = document.createElement('tr');
+          const decision = document.createElement('td');
+          decision.textContent = event.decision;
+          decision.className = event.decision === 'allow' ? 'allow' : 'deny';
+          row.append(
+            cell(formatTime(event.ts)),
+            decision,
+            cell(event.code),
+            cell(event.did || '—'),
+            cell(event.destination || '—'),
+            cell((event.hash || '').slice(0, 12)),
+          );
+          auditEl.append(row);
+        }
+      }
+
+      function cell(text) {
+        const td = document.createElement('td');
+        td.textContent = text;
+        return td;
+      }
+
+      async function run(scenario) {
+        const payload = { scenario, destination: destinationEl.value };
+        if (scenario === 'allow' && promptEl.value.trim()) payload.prompt = promptEl.value;
+        resultEl.textContent = '送信中';
+        const response = await fetch('/api/gateway/demo/run', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const body = await response.json();
+        resultEl.textContent = JSON.stringify({ status: response.status, body }, null, 2);
+        await refresh();
+      }
+
+      for (const button of document.querySelectorAll('[data-scenario]')) {
+        button.addEventListener('click', () => {
+          run(button.getAttribute('data-scenario')).catch((error) => {
+            resultEl.textContent = error instanceof Error ? error.message : 'failed';
+          });
+        });
+      }
+
+      refresh().catch((error) => {
+        resultEl.textContent = error instanceof Error ? error.message : 'failed';
+      });
+    </script>
+  </body>
+</html>
