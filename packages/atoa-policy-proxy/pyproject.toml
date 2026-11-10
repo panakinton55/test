@@ -1,0 +1,26 @@
+[project]
+name = "atoa-policy-proxy"
+version = "0.1.0"
+description = "Default-deny policy gateway between AI agents and external APIs"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "atoa-identity",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "httpx>=0.27.0",
+    "pyyaml>=6.0.2",
+]
+
+[project.scripts]
+atoa-policy-proxy = "atoa_policy_proxy.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/atoa_policy_proxy"]
+
+[tool.uv.sources]
+atoa-identity = { workspace = true }
