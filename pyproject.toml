@@ -1,0 +1,53 @@
+[project]
+name = "atoa"
+version = "0.1.0"
+description = "Minimal Agent-to-Agent identity and policy proxy (weekend MVP)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "atoa-identity",
+    "atoa-policy-proxy",
+]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+atoa-identity = { workspace = true }
+atoa-policy-proxy = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "httpx>=0.27.0",
+    "mypy>=1.13.0",
+    "ruff>=0.8.0",
+    "types-PyYAML>=6.0.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["packages", "tests", "examples"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["atoa_identity", "atoa_policy_proxy"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["atoa_identity", "atoa_policy_proxy"]
+mypy_path = "packages/atoa-identity/src:packages/atoa-policy-proxy/src"
+
+[[tool.mypy.overrides]]
+module = ["nacl.*"]
+ignore_missing_imports = true

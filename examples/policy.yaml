@@ -1,0 +1,34 @@
+# Default is deny. Only explicitly listed agents and routes are allowed.
+audience: "http://127.0.0.1:8080"
+
+agents:
+  # Replace with your agent's public profile values (never put private keys here).
+  did:atoa:REPLACE_WITH_PUBLIC_KEY_HEX:
+    public_key: "REPLACE_WITH_PUBLIC_KEY_HEX"
+    key_version: 1
+    enabled: true
+    allowed_scopes:
+      - "weather:read"
+      - "payments:create"
+
+routes:
+  - id: weather-get
+    host: "api.example.com"
+    methods: ["GET"]
+    path_pattern: "/v1/weather*"
+    required_scopes: ["weather:read"]
+    rate_limit:
+      requests: 10
+      window_seconds: 60
+
+  - id: payments-create
+    host: "api.example.com"
+    methods: ["POST"]
+    path_pattern: "/v1/payments"
+    required_scopes: ["payments:create"]
+    max_amount: 50.0
+    rate_limit:
+      requests: 5
+      window_seconds: 60
+
+default_action: deny
